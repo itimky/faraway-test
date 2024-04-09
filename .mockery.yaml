@@ -1,0 +1,14 @@
+# https://vektra.github.io/mockery/latest/configuration/
+
+log-level: warn
+all: true
+dir: 'test/{{ replaceAll .InterfaceDirRelative "github.com/itimky/faraway-test" "" }}'
+outpkg: mocks
+packages:
+  io:
+    config:
+      all: false
+    interfaces:
+      Reader: { }
+
+  github.com/itimky/faraway-test/pkg/book: { }
