@@ -3,8 +3,9 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/itimky/faraway-test/pkg/pow"
 	"strconv"
+
+	"github.com/itimky/faraway-test/pkg/pow"
 )
 
 type POWMiddleware struct {

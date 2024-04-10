@@ -2,12 +2,13 @@ package client_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/itimky/faraway-test/pkg/client"
 	"github.com/itimky/faraway-test/pkg/pow"
 	"github.com/itimky/faraway-test/test"
 	mocks "github.com/itimky/faraway-test/test/pkg/client"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type ClientSuite struct {

@@ -2,9 +2,9 @@ package server_test
 
 import (
 	"context"
-	"github.com/itimky/faraway-test/pkg/pow"
 	"testing"
 
+	"github.com/itimky/faraway-test/pkg/pow"
 	"github.com/itimky/faraway-test/pkg/server"
 	"github.com/itimky/faraway-test/test"
 	mocks "github.com/itimky/faraway-test/test/pkg/server"
