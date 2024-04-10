@@ -21,6 +21,11 @@ Design and implement “Word of Wisdom” tcp server.
 
 Chosen POW algorithm: [HashCash](https://en.wikipedia.org/wiki/Hashcash) as it is simple enough for a test.
 
+To run server & client:
+```shell
+docker-compose up
+```
+
 <!-- https://mermaid.js.org/syntax/classDiagram.html -->
 
 ```mermaid
