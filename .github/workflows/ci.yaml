@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    name: Lint
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.57
+          skip-cache: true
+
+  test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    name: Test
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Run go mod tidy
+        run: go mod tidy
+
+      - name: Check for changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "go.mod and/or go.sum have changes after running go mod tidy. Please tidy your module."
+            git diff
+            exit 1
+          fi
+
+      - name: Run Tests
+        run: go test -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Check coverage
+        id: coverage
+        run: |
+          coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: $coverage%"
+          minimum=95.5
+          result=$(echo "$coverage >= $minimum" | bc)
+          if [ "$result" -eq 0 ]; then
+            echo "Coverage of $coverage% is below the minimum of $minimum%"
+            exit 1
+          fi
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: itimky/faraway-test
+          disable_search: true
+          file: ./coverage.out
+          dry_run: ${{ github.ref != 'refs/heads/main' }}
+          fail_ci_if_error: true
