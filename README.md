@@ -19,29 +19,52 @@ Design and implement “Word of Wisdom” tcp server.
 
 ```mermaid
 ---
-title: Server Draft
+title: Code design
 ---
 classDiagram
     direction LR
+    namespace contract {
+        class ReqRepChallenge {
+        }
+        class ReqRepQuote {
+        }
+    }
     namespace server {
+        class ServerTCP {
+            Start() error
+        }
+
         class ServerHandler["handler"] {
-            Handle(conn net.Conn) error
+            Handle() error
         }
 
         class ServerPowMiddleware["middleware"] {
-            Handle(conn net.Conn) error
+            Handle() error
+        }
+
+        class ServerHandlerI["handler"] {
+            <<interface>>
+            Handle() error
         }
 
         class ServerBook["book"] {
             <<interface>>
-            GetRandomQuote(ctx) string, error
+            GetRandomQuote() string, error
         }
-        
-        class ServerPOW["pow"] {
+
+        class ServerPOW["POW"] {
             <<interface>>
             GenerateChallenge() string, error
-            SolveChallenge(challenge string, difficulty int) int
             ValidateSolution(challenge string, solution int) bool
+        }
+    }
+    namespace client {
+        class ClientTCP["TCP"] {
+            GetQuote() error
+        }
+
+        class ClientPOW["POW"] {
+            SolveChallenge(challenge string, difficulty int) int
         }
     }
     namespace pow {
@@ -53,12 +76,40 @@ classDiagram
     }
     namespace book {
         class Book {
-            GetRandomQuote(ctx) string, error
+            GetRandomQuote() string, error
         }
     }
 
+    ReqRepChallenge <-- ServerPowMiddleware
+    ReqRepQuote <-- ServerHandler
+    ServerTCP --> ServerHandlerI
+    ServerHandlerI <|.. ServerHandler
+    ServerHandlerI <|.. ServerPowMiddleware
     ServerHandler --> ServerBook
     ServerPowMiddleware --> ServerPOW
     ServerBook <|.. Book
     ServerPOW <|.. HashCash
+    ReqRepChallenge <-- ClientTCP
+    ReqRepQuote <-- ClientTCP
+    ClientTCP --> ClientPOW
+    ClientPOW <|.. HashCash
+```
+
+```mermaid
+---
+title: Event design
+---
+sequenceDiagram
+    participant Client
+    participant ServerProxy
+    participant ServerWorker
+
+    Client ->> ServerProxy: ReqChallenge
+    ServerProxy ->> ServerWorker: ReqChallenge
+    ServerWorker ->> ServerProxy: RepChallenge
+    ServerProxy ->> Client: RepChallenge
+    Client ->> ServerProxy: ReqQuote
+    ServerProxy ->> ServerWorker: ReqQuote
+    ServerWorker ->> ServerProxy: RepQuote
+    ServerProxy ->> Client: RepQuote
 ```
