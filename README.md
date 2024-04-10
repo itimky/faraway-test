@@ -23,27 +23,12 @@ title: Code design
 ---
 classDiagram
     direction LR
-    namespace contract {
-        class ReqRepChallenge {
-        }
-        class ReqRepQuote {
-        }
-    }
     namespace server {
-        class ServerTCP {
-            Start() error
-        }
-
         class ServerHandler["handler"] {
             Handle() error
         }
 
         class ServerPowMiddleware["middleware"] {
-            Handle() error
-        }
-
-        class ServerHandlerI["handler"] {
-            <<interface>>
             Handle() error
         }
 
@@ -59,11 +44,12 @@ classDiagram
         }
     }
     namespace client {
-        class ClientTCP["TCP"] {
+        class ClientTCP["Client"] {
             GetQuote() error
         }
 
         class ClientPOW["POW"] {
+            <<interface>>
             SolveChallenge(challenge string, difficulty int) int
         }
     }
@@ -80,17 +66,10 @@ classDiagram
         }
     }
 
-    ReqRepChallenge <-- ServerPowMiddleware
-    ReqRepQuote <-- ServerHandler
-    ServerTCP --> ServerHandlerI
-    ServerHandlerI <|.. ServerHandler
-    ServerHandlerI <|.. ServerPowMiddleware
     ServerHandler --> ServerBook
     ServerPowMiddleware --> ServerPOW
     ServerBook <|.. Book
     ServerPOW <|.. HashCash
-    ReqRepChallenge <-- ClientTCP
-    ReqRepQuote <-- ClientTCP
     ClientTCP --> ClientPOW
     ClientPOW <|.. HashCash
 ```
