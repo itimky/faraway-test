@@ -9,7 +9,10 @@ import (
 	"strings"
 )
 
-const randBytes int = 16
+const (
+	DefaultDifficulty int = 3
+	randBytes         int = 16
+)
 
 var ErrInvalidSolution = errors.New("invalid solution")
 

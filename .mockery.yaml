@@ -12,3 +12,5 @@ packages:
       Reader: { }
 
   github.com/itimky/faraway-test/pkg/book: { }
+
+  github.com/itimky/faraway-test/pkg/server: { }

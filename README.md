@@ -101,15 +101,10 @@ title: Event design
 ---
 sequenceDiagram
     participant Client
-    participant ServerProxy
-    participant ServerWorker
+    participant Server
 
-    Client ->> ServerProxy: ReqChallenge
-    ServerProxy ->> ServerWorker: ReqChallenge
-    ServerWorker ->> ServerProxy: RepChallenge
-    ServerProxy ->> Client: RepChallenge
-    Client ->> ServerProxy: ReqQuote
-    ServerProxy ->> ServerWorker: ReqQuote
-    ServerWorker ->> ServerProxy: RepQuote
-    ServerProxy ->> Client: RepQuote
+    Client ->> Server: ReqChallenge
+    Server ->> Client: RepChallenge
+    Client ->> Server: ReqQuote
+    Server ->> Client: RepQuote
 ```

@@ -21,6 +21,8 @@ issues:
       linters:
         - depguard
         - varnamelen
+        - exhaustruct
+        - funlen
 linters-settings:
   depguard:
     rules:

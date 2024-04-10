@@ -2,10 +2,8 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-
-	"github.com/itimky/faraway-test/pkg/contract"
+	"strconv"
 )
 
 type POWMiddleware struct {
@@ -36,41 +34,24 @@ func (m *POWMiddleware) Handle(
 		return fmt.Errorf("generate challenge: %w", err)
 	}
 
-	repChallengeData, err := json.Marshal(contract.RepChallenge{
-		Challenge: challenge,
-	})
-	if err != nil {
-		return fmt.Errorf("marshal json: %w", err)
-	}
-
-	err = m.socket.Send(repChallengeData)
+	err = m.socket.Send([]byte(challenge))
 	if err != nil {
 		return fmt.Errorf("send challenge: %w", err)
 	}
 
-	reqQuoteData, err := m.socket.Recv()
+	solutionData, err := m.socket.Recv()
 	if err != nil {
 		return fmt.Errorf("recv solution: %w", err)
 	}
 
-	var reqQuote contract.ReqQuote
-
-	err = json.Unmarshal(reqQuoteData, &reqQuote)
+	solution, err := strconv.Atoi(string(solutionData))
 	if err != nil {
-		return fmt.Errorf("unmarshal json: %w", err)
+		return fmt.Errorf("convert solution: %w", err)
 	}
 
-	err = m.hashCash.ValidateSolution(challenge, int(reqQuote.Solution))
+	err = m.hashCash.ValidateSolution(challenge, solution)
 	if err != nil {
-		repQuoteData, mErr := json.Marshal(contract.RepQuote{
-			Error: err.Error(),
-			Quote: "",
-		})
-		if mErr != nil {
-			return fmt.Errorf("marshal json: %w", mErr)
-		}
-
-		mErr = m.socket.Send(repQuoteData)
+		mErr := m.socket.Send([]byte(err.Error()))
 		if mErr != nil {
 			return fmt.Errorf("send quote: %w", mErr)
 		}

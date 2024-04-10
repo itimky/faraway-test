@@ -1,5 +1,7 @@
 package server
 
+import "context"
+
 type book interface {
 	GetRandomQuote() (string, error)
 }
@@ -12,4 +14,8 @@ type hashCash interface {
 type socket interface {
 	Recv() ([]byte, error)
 	Send(data []byte) error
+}
+
+type handler interface {
+	Handle(ctx context.Context) error
 }
