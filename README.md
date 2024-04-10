@@ -1,5 +1,9 @@
 # faraway-test
 
+[![codecov](https://codecov.io/gh/itimky/faraway-test/graph/badge.svg?token=EYGCJEHSDN)](https://codecov.io/gh/itimky/faraway-test)
+[![Go Report Card](https://goreportcard.com/badge/github.com/itimky/faraway-test)](https://goreportcard.com/report/github.com/itimky/faraway-test)
+
+
 ## Test task for Server Engineer
 
 ```text
