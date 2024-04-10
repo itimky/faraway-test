@@ -40,6 +40,6 @@ tasks:
         -v {{.HOME}}/go/pkg/mod:/go/pkg/mod
         -w /app
         {{.GOLANG_TEST_IMAGE}}
-        go test $(go list ./... | grep -v /test/)
+        go test $(go list ./... | grep -v /test/ | grep -v /cmd/)
         -covermode=atomic
-        -coverprofile /tmp/cov.out
+        -coverprofile /app/tmp/cov.out
