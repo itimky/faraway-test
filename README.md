@@ -15,6 +15,8 @@ Design and implement “Word of Wisdom” tcp server.
    the client that solves the POW challenge
 ```
 
+Chosen POW algorithm: [HashCash](https://en.wikipedia.org/wiki/Hashcash) as it is simple enough for a test.
+
 <!-- https://mermaid.js.org/syntax/classDiagram.html -->
 
 ```mermaid

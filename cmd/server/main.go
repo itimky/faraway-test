@@ -15,7 +15,7 @@ import (
 	"github.com/itimky/faraway-test/pkg/server"
 	"go.nanomsg.org/mangos/v3"
 	"go.nanomsg.org/mangos/v3/protocol/rep"
-	_ "go.nanomsg.org/mangos/v3/transport/all"
+	_ "go.nanomsg.org/mangos/v3/transport/tcp"
 )
 
 func quotes() []string {
@@ -80,7 +80,7 @@ func main() {
 	powMiddleware := server.NewPOWMiddleware(sock, hashCash)
 	handler := server.NewHandler(sock, quotesBook)
 
-	if err := sock.Listen("tcp://0.0.0.0:5555"); err != nil {
+	if err := sock.Listen("tcp://:5678"); err != nil {
 		logger.Errorf("listen: %s", err)
 
 		return

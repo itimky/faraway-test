@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultDifficulty int = 3
+	DefaultDifficulty int = 5
 	randBytes         int = 16
 )
 

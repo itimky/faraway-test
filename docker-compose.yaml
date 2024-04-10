@@ -5,3 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
