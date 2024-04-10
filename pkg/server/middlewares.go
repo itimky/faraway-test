@@ -26,7 +26,7 @@ func NewPOWMiddleware(
 func (m *POWMiddleware) Handle(
 	_ context.Context,
 ) error {
-	_, err := m.socket.Recv(0)
+	_, err := m.socket.Recv()
 	if err != nil {
 		return fmt.Errorf("recv: %w", err)
 	}
@@ -43,18 +43,19 @@ func (m *POWMiddleware) Handle(
 		return fmt.Errorf("marshal json: %w", err)
 	}
 
-	_, err = m.socket.Send(string(repChallengeData), 0)
+	err = m.socket.Send(repChallengeData)
 	if err != nil {
 		return fmt.Errorf("send challenge: %w", err)
 	}
 
-	reqQuoteData, err := m.socket.Recv(0)
+	reqQuoteData, err := m.socket.Recv()
 	if err != nil {
 		return fmt.Errorf("recv solution: %w", err)
 	}
 
 	var reqQuote contract.ReqQuote
-	err = json.Unmarshal([]byte(reqQuoteData), &reqQuote)
+
+	err = json.Unmarshal(reqQuoteData, &reqQuote)
 	if err != nil {
 		return fmt.Errorf("unmarshal json: %w", err)
 	}
@@ -69,7 +70,7 @@ func (m *POWMiddleware) Handle(
 			return fmt.Errorf("marshal json: %w", mErr)
 		}
 
-		_, mErr = m.socket.Send(string(repQuoteData), 0)
+		mErr = m.socket.Send(repQuoteData)
 		if mErr != nil {
 			return fmt.Errorf("send quote: %w", mErr)
 		}

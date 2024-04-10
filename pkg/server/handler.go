@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/itimky/faraway-test/pkg/contract"
 )
 
@@ -38,7 +39,7 @@ func (s *Handler) Handle(
 		return fmt.Errorf("marshal json: %w", err)
 	}
 
-	_, err = s.socket.Send(string(repQuoteData), 0)
+	err = s.socket.Send(repQuoteData)
 	if err != nil {
 		return fmt.Errorf("send quote: %w", err)
 	}

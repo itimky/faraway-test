@@ -21,3 +21,12 @@ issues:
       linters:
         - depguard
         - varnamelen
+linters-settings:
+  depguard:
+    rules:
+      pkg:
+        files:
+          - pkg/**/*.go
+        deny:
+          - pkg: github.com/itimky/faraway-test/test
+            desc: for tests only

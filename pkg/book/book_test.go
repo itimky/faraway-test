@@ -1,10 +1,10 @@
 package book_test
 
 import (
-	mocks "github.com/itimky/faraway-test/test/pkg/book"
 	"testing"
 
 	"github.com/itimky/faraway-test/pkg/book"
+	mocks "github.com/itimky/faraway-test/test/pkg/book"
 	"github.com/stretchr/testify/suite"
 )
 

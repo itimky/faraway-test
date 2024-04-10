@@ -1,7 +1,5 @@
 package server
 
-import "github.com/pebbe/zmq4"
-
 type book interface {
 	GetRandomQuote() (string, error)
 }
@@ -12,6 +10,6 @@ type hashCash interface {
 }
 
 type socket interface {
-	Recv(flags zmq4.Flag) (string, error)
-	Send(data string, flags zmq4.Flag) (int, error)
+	Recv() ([]byte, error)
+	Send(data []byte) error
 }
