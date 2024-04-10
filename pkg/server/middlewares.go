@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/itimky/faraway-test/pkg/pow"
 	"strconv"
 )
 
@@ -46,7 +47,7 @@ func (m *POWMiddleware) Handle(
 
 	solution, err := strconv.Atoi(string(solutionData))
 	if err != nil {
-		return fmt.Errorf("convert solution: %w", err)
+		return pow.ErrInvalidSolution
 	}
 
 	err = m.hashCash.ValidateSolution(challenge, solution)

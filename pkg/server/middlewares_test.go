@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"github.com/itimky/faraway-test/pkg/pow"
 	"testing"
 
 	"github.com/itimky/faraway-test/pkg/server"
@@ -65,6 +66,13 @@ func (s *POWMiddlewareTest) Test_Handle() {
 			genChallengeRes:     "challenge",
 			sendChallengeParams: []byte("challenge"),
 			recvSolutionErr:     test.Err,
+		},
+		{
+			name:                "err: convert solution error",
+			expectedError:       pow.ErrInvalidSolution,
+			genChallengeRes:     "challenge",
+			sendChallengeParams: []byte("challenge"),
+			recvSolutionRes:     []byte("not a number"),
 		},
 		{
 			name:                          "err: validate solution error: send err error",
