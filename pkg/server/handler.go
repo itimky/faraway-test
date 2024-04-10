@@ -2,20 +2,22 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/itimky/faraway-test/pkg/contract"
 )
 
 type Handler struct {
-	sender sender
+	socket socket
 	book   book
 }
 
 func NewHandler(
-	sender sender,
+	socket socket,
 	book book,
 ) *Handler {
 	return &Handler{
-		sender: sender,
+		socket: socket,
 		book:   book,
 	}
 }
@@ -28,7 +30,15 @@ func (s *Handler) Handle(
 		return fmt.Errorf("get random quote: %w", err)
 	}
 
-	_, err = s.sender.Send(quote, 0)
+	repQuoteData, err := json.Marshal(contract.RepQuote{
+		Error: "",
+		Quote: quote,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal json: %w", err)
+	}
+
+	_, err = s.socket.Send(string(repQuoteData), 0)
 	if err != nil {
 		return fmt.Errorf("send quote: %w", err)
 	}

@@ -89,23 +89,29 @@ func (s *HashCashSuite) Test_SolveChallenge() {
 
 func (s *HashCashSuite) Test_ValidateSolution() {
 	testCases := []struct {
-		name           string
-		expectedResult bool
-		challenge      string
-		solution       int
+		name        string
+		expectedErr error
+		challenge   string
+		solution    int
 	}{
 		{
-			name:           "ok",
-			expectedResult: true,
-			challenge:      "000102030405060708090a0b0c0d0e0f",
-			solution:       6,
+			name:        "err: invalid solution",
+			expectedErr: pow.ErrInvalidSolution,
+			challenge:   "000102030405060708090a0b0c0d0e0f",
+			solution:    5,
+		},
+		{
+			name:        "ok",
+			expectedErr: nil,
+			challenge:   "000102030405060708090a0b0c0d0e0f",
+			solution:    6,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			result := s.hashCash.ValidateSolution(tc.challenge, tc.solution)
-			s.Equal(tc.expectedResult, result)
+			err := s.hashCash.ValidateSolution(tc.challenge, tc.solution)
+			s.ErrorIs(err, tc.expectedErr)
 		})
 	}
 }

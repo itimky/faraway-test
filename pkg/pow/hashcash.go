@@ -3,12 +3,15 @@ package pow
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 )
 
 const randBytes int = 16
+
+var ErrInvalidSolution = errors.New("invalid solution")
 
 type HashCash struct {
 	randReader io.Reader
@@ -60,11 +63,15 @@ func (hc *HashCash) SolveChallenge(
 func (hc *HashCash) ValidateSolution(
 	challenge string,
 	solution int,
-) bool {
+) error {
 	hashInput := fmt.Sprintf("%s:%d", challenge, solution)
 	hashBytes := sha256.Sum256([]byte(hashInput))
 	hash := hex.EncodeToString(hashBytes[:])
 	prefix := strings.Repeat("0", hc.difficulty)
 
-	return strings.HasPrefix(hash, prefix)
+	if !strings.HasPrefix(hash, prefix) {
+		return ErrInvalidSolution
+	}
+
+	return nil
 }

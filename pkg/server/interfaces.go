@@ -8,13 +8,10 @@ type book interface {
 
 type hashCash interface {
 	GenerateChallenge() (string, error)
-	ValidateSolution(challenge string, solution int) bool
+	ValidateSolution(challenge string, solution int) error
 }
 
-type recver interface {
+type socket interface {
 	Recv(flags zmq4.Flag) (string, error)
-}
-
-type sender interface {
 	Send(data string, flags zmq4.Flag) (int, error)
 }

@@ -55,7 +55,7 @@ classDiagram
         class ServerPOW["POW"] {
             <<interface>>
             GenerateChallenge() string, error
-            ValidateSolution(challenge string, solution int) bool
+            ValidateSolution(challenge string, solution int) error
         }
     }
     namespace client {
@@ -71,7 +71,7 @@ classDiagram
         class HashCash {
             GenerateChallenge() string, error
             SolveChallenge(challenge string, difficulty int) int
-            ValidateSolution(challenge string, solution int) bool
+            ValidateSolution(challenge string, solution int) error
         }
     }
     namespace book {
