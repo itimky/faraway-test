@@ -5,6 +5,7 @@ import (
 	cryptorand "crypto/rand"
 	"fmt"
 	"math/rand"
+	"net"
 	"os/signal"
 	"syscall"
 	"time"
@@ -13,9 +14,6 @@ import (
 	logadapter "github.com/itimky/faraway-test/pkg/log/adapter"
 	"github.com/itimky/faraway-test/pkg/pow"
 	"github.com/itimky/faraway-test/pkg/server"
-	"go.nanomsg.org/mangos/v3"
-	"go.nanomsg.org/mangos/v3/protocol/rep"
-	_ "go.nanomsg.org/mangos/v3/transport/tcp"
 )
 
 func quotes() []string {
@@ -44,7 +42,7 @@ func (r CryptoRand) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-func main() {
+func main() { //nolint:funlen
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
@@ -59,50 +57,54 @@ func main() {
 	hashCash := pow.NewHashCash(CryptoRand{}, pow.DefaultDifficulty)
 	quotesBook := book.NewBook(rand.New(rand.NewSource(time.Now().UnixNano())), quotes()) //nolint:gosec
 
-	var sock mangos.Socket
+	powMiddleware := server.NewPOWMiddleware(hashCash)
+	handler := server.NewHandler(quotesBook)
 
-	sock, err := rep.NewSocket()
+	listener, err := net.Listen("tcp", ":5678") //nolint:gosec
 	if err != nil {
-		logger.Errorf("new socket: %s", err)
-
-		return
-	}
-
-	defer func() {
-		err := sock.Close()
-		if err != nil {
-			logger.Errorf("close socket: %s", err)
-
-			return
-		}
-	}()
-
-	powMiddleware := server.NewPOWMiddleware(sock, hashCash)
-	handler := server.NewHandler(sock, quotesBook)
-
-	if err := sock.Listen("tcp://:5678"); err != nil {
 		logger.Errorf("listen: %s", err)
 
 		return
 	}
 
 	go func() {
-		for {
-			err := powMiddleware.Handle(ctx)
-			if err != nil {
-				logger.Errorf("pow middleware handle: %s", err)
+		<-ctx.Done()
 
-				continue
-			}
-
-			err = handler.Handle(ctx)
-			if err != nil {
-				logger.Errorf("handler handle: %s", err)
-
-				continue
-			}
+		err := listener.Close()
+		if err != nil {
+			logger.Errorf("listener close: %s", err)
 		}
 	}()
 
-	<-ctx.Done()
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			if ctx.Err() == nil {
+				logger.Errorf("accept: %s", err)
+			}
+
+			return
+		}
+
+		go func(conn net.Conn) {
+			defer func() {
+				err := conn.Close()
+				if err != nil {
+					logger.Errorf("conn close: %s", err)
+				}
+			}()
+
+			err := powMiddleware.Handle(ctx, conn)
+			if err != nil {
+				logger.Errorf("pow middleware handle: %s", err)
+
+				return
+			}
+
+			err = handler.Handle(ctx, conn)
+			if err != nil {
+				logger.Errorf("handler handle: %s", err)
+			}
+		}(conn)
+	}
 }

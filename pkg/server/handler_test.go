@@ -6,6 +6,7 @@ import (
 
 	"github.com/itimky/faraway-test/pkg/server"
 	"github.com/itimky/faraway-test/test"
+	netmocks "github.com/itimky/faraway-test/test/net"
 	mocks "github.com/itimky/faraway-test/test/pkg/server"
 	"github.com/stretchr/testify/suite"
 )
@@ -13,16 +14,16 @@ import (
 type HandlerSuite struct {
 	suite.Suite
 
-	socketMock *mocks.Mocksocket
-	bookMock   *mocks.Mockbook
+	connMock *netmocks.MockConn
+	bookMock *mocks.Mockbook
 
 	handler *server.Handler
 }
 
 func (s *HandlerSuite) SetupTest() {
-	s.socketMock = mocks.NewMocksocket(s.T())
+	s.connMock = netmocks.NewMockConn(s.T())
 	s.bookMock = mocks.NewMockbook(s.T())
-	s.handler = server.NewHandler(s.socketMock, s.bookMock)
+	s.handler = server.NewHandler(s.bookMock)
 }
 
 func (s *HandlerSuite) Test_Handle() {
@@ -43,13 +44,13 @@ func (s *HandlerSuite) Test_Handle() {
 			name:        "err: send error",
 			expectedErr: test.Err,
 			quoteResult: "quote",
-			sendParams:  []byte("quote"),
+			sendParams:  []byte("quote\n"),
 			sendError:   test.Err,
 		},
 		{
 			name:        "ok",
 			quoteResult: "quote",
-			sendParams:  []byte("quote"),
+			sendParams:  []byte("quote\n"),
 		},
 	}
 
@@ -58,10 +59,10 @@ func (s *HandlerSuite) Test_Handle() {
 			s.bookMock.EXPECT().GetRandomQuote().Return(tc.quoteResult, tc.quoteError).Once()
 
 			if tc.sendParams != nil {
-				s.socketMock.EXPECT().Send(tc.sendParams).Return(tc.sendError).Once()
+				s.connMock.EXPECT().Write(tc.sendParams).Return(len(tc.sendParams), tc.sendError).Once()
 			}
 
-			err := s.handler.Handle(context.Background())
+			err := s.handler.Handle(context.Background(), s.connMock)
 
 			s.ErrorIs(err, tc.expectedErr)
 		})

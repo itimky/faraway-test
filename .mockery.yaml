@@ -11,6 +11,12 @@ packages:
     interfaces:
       Reader: { }
 
+  net:
+    config:
+      all: false
+    interfaces:
+      Conn: { }
+
   github.com/itimky/faraway-test/pkg/book: { }
 
   github.com/itimky/faraway-test/pkg/server: { }

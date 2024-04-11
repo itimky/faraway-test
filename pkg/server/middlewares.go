@@ -1,63 +1,64 @@
 package server
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"net"
 	"strconv"
+	"strings"
 
 	"github.com/itimky/faraway-test/pkg/pow"
 )
 
 type POWMiddleware struct {
-	socket   socket
 	hashCash hashCash
 }
 
 func NewPOWMiddleware(
-	socket socket,
 	hashCash hashCash,
 ) *POWMiddleware {
 	return &POWMiddleware{
-		socket:   socket,
 		hashCash: hashCash,
 	}
 }
 
 func (m *POWMiddleware) Handle(
 	_ context.Context,
+	conn net.Conn,
 ) error {
-	_, err := m.socket.Recv()
-	if err != nil {
-		return fmt.Errorf("recv: %w", err)
-	}
+	reader := bufio.NewReader(conn)
+	writer := bufio.NewWriter(conn)
 
 	challenge, err := m.hashCash.GenerateChallenge()
 	if err != nil {
 		return fmt.Errorf("generate challenge: %w", err)
 	}
 
-	err = m.socket.Send([]byte(challenge))
+	_, err = fmt.Fprintln(writer, challenge)
 	if err != nil {
-		return fmt.Errorf("send challenge: %w", err)
+		return fmt.Errorf("fprintln: %w", err)
 	}
 
-	solutionData, err := m.socket.Recv()
+	err = writer.Flush()
 	if err != nil {
-		return fmt.Errorf("recv solution: %w", err)
+		return fmt.Errorf("flush: %w", err)
 	}
 
-	solution, err := strconv.Atoi(string(solutionData))
+	solutionData, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("read string: %w", err)
+	}
+
+	solutionData = strings.TrimSpace(solutionData)
+
+	solution, err := strconv.Atoi(solutionData)
 	if err != nil {
 		return pow.ErrInvalidSolution
 	}
 
 	err = m.hashCash.ValidateSolution(challenge, solution)
 	if err != nil {
-		mErr := m.socket.Send([]byte(err.Error()))
-		if mErr != nil {
-			return fmt.Errorf("send quote: %w", mErr)
-		}
-
 		return fmt.Errorf("validate solution: %w", err)
 	}
 

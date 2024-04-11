@@ -1,36 +1,43 @@
 package server
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"net"
 )
 
 type Handler struct {
-	socket socket
-	book   book
+	book book
 }
 
 func NewHandler(
-	socket socket,
 	book book,
 ) *Handler {
 	return &Handler{
-		socket: socket,
-		book:   book,
+		book: book,
 	}
 }
 
 func (s *Handler) Handle(
 	_ context.Context,
+	conn net.Conn,
 ) error {
+	writer := bufio.NewWriter(conn)
+
 	quote, err := s.book.GetRandomQuote()
 	if err != nil {
 		return fmt.Errorf("get random quote: %w", err)
 	}
 
-	err = s.socket.Send([]byte(quote))
+	_, err = fmt.Fprintln(writer, quote)
 	if err != nil {
-		return fmt.Errorf("send quote: %w", err)
+		return fmt.Errorf("fprintln: %w", err)
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		return fmt.Errorf("flush: %w", err)
 	}
 
 	return nil

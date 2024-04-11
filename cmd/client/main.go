@@ -4,15 +4,13 @@ import (
 	"context"
 	cryptorand "crypto/rand"
 	"fmt"
+	"net"
 	"os/signal"
 	"syscall"
 
 	"github.com/itimky/faraway-test/pkg/client"
 	logadapter "github.com/itimky/faraway-test/pkg/log/adapter"
 	"github.com/itimky/faraway-test/pkg/pow"
-	"go.nanomsg.org/mangos/v3"
-	"go.nanomsg.org/mangos/v3/protocol/req"
-	_ "go.nanomsg.org/mangos/v3/transport/tcp"
 )
 
 type CryptoRand struct {
@@ -41,33 +39,23 @@ func main() {
 
 	hashCash := pow.NewHashCash(CryptoRand{}, pow.DefaultDifficulty)
 
-	var sock mangos.Socket
+	bookClient := client.NewClient(hashCash)
 
-	sock, err := req.NewSocket()
+	conn, err := net.Dial("tcp", "server:5678")
 	if err != nil {
-		logger.Errorf("new socket: %s", err)
-
-		return
-	}
-
-	defer func() {
-		err := sock.Close()
-		if err != nil {
-			logger.Errorf("close socket: %s", err)
-
-			return
-		}
-	}()
-
-	if err := sock.Dial("tcp://server:5678"); err != nil {
 		logger.Errorf("dial: %s", err)
 
 		return
 	}
 
-	bookClient := client.NewClient(sock, hashCash)
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			logger.Errorf("close: %s", err)
+		}
+	}()
 
-	quote, err := bookClient.GetRandomQuote(ctx)
+	quote, err := bookClient.GetRandomQuote(ctx, conn)
 	if err != nil {
 		logger.Errorf("get random quote: %s", err)
 

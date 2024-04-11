@@ -7,24 +7,26 @@ import (
 	"github.com/itimky/faraway-test/pkg/client"
 	"github.com/itimky/faraway-test/pkg/pow"
 	"github.com/itimky/faraway-test/test"
+	netmocks "github.com/itimky/faraway-test/test/net"
 	mocks "github.com/itimky/faraway-test/test/pkg/client"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type ClientSuite struct {
 	suite.Suite
 
-	socketMock   *mocks.Mocksocket
+	connMock     *netmocks.MockConn
 	hashCashMock *mocks.MockhashCash
 
 	client *client.Client
 }
 
 func (s *ClientSuite) SetupTest() {
-	s.socketMock = mocks.NewMocksocket(s.T())
+	s.connMock = netmocks.NewMockConn(s.T())
 	s.hashCashMock = mocks.NewMockhashCash(s.T())
 
-	s.client = client.NewClient(s.socketMock, s.hashCashMock)
+	s.client = client.NewClient(s.hashCashMock)
 }
 
 func (s *ClientSuite) Test_GetRandomQuote() {
@@ -43,11 +45,6 @@ func (s *ClientSuite) Test_GetRandomQuote() {
 		quoteRecvErr        error
 	}{
 		{
-			name:        "err: init send error",
-			expectedErr: test.Err,
-			initSendErr: test.Err,
-		},
-		{
 			name:             "err: challenge recv error",
 			expectedErr:      test.Err,
 			challengeRecvErr: test.Err,
@@ -55,53 +52,56 @@ func (s *ClientSuite) Test_GetRandomQuote() {
 		{
 			name:                "err: solution send error",
 			expectedErr:         test.Err,
-			challengeRecvResult: []byte("challenge"),
+			challengeRecvResult: []byte("challenge\n"),
 			solveParams:         "challenge",
 			solveResult:         42,
-			solutionSendParams:  []byte("42"),
+			solutionSendParams:  []byte("42\n"),
 			solutionSendErr:     test.Err,
 		},
 		{
 			name:                "err: quote recv error",
 			expectedErr:         test.Err,
-			challengeRecvResult: []byte("challenge"),
+			challengeRecvResult: []byte("challenge\n"),
 			solveParams:         "challenge",
 			solveResult:         42,
-			solutionSendParams:  []byte("42"),
+			solutionSendParams:  []byte("42\n"),
 			quoteRecvErr:        test.Err,
 		},
 		{
 			name:                "ok",
 			expectedResult:      "quote",
-			challengeRecvResult: []byte("challenge"),
+			challengeRecvResult: []byte("challenge\n"),
 			solveParams:         "challenge",
 			solveResult:         42,
-			solutionSendParams:  []byte("42"),
-			quoteRecvResult:     []byte("quote"),
+			solutionSendParams:  []byte("42\n"),
+			quoteRecvResult:     []byte("quote\n"),
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.socketMock.EXPECT().Send([]byte("")).Return(tc.initSendErr).Once()
-
-			if tc.challengeRecvResult != nil || tc.challengeRecvErr != nil {
-				s.socketMock.EXPECT().Recv().Return(tc.challengeRecvResult, tc.challengeRecvErr).Once()
-			}
+			s.connMock.EXPECT().Read(mock.Anything).Return(len(tc.challengeRecvResult), tc.challengeRecvErr).
+				Run(func(b []byte) {
+					copy(b, tc.challengeRecvResult)
+				}).Once()
 
 			if tc.solveParams != "" {
 				s.hashCashMock.EXPECT().SolveChallenge(tc.solveParams, pow.DefaultDifficulty).Return(tc.solveResult)
 			}
 
 			if tc.solutionSendParams != nil {
-				s.socketMock.EXPECT().Send(tc.solutionSendParams).Return(tc.solutionSendErr).Once()
+				s.connMock.EXPECT().Write(tc.solutionSendParams).Return(len(tc.solutionSendParams), tc.solutionSendErr).
+					Once()
 			}
 
 			if tc.quoteRecvResult != nil || tc.quoteRecvErr != nil {
-				s.socketMock.EXPECT().Recv().Return(tc.quoteRecvResult, tc.quoteRecvErr).Once()
+				s.connMock.EXPECT().Read(mock.Anything).Return(len(tc.quoteRecvResult), tc.quoteRecvErr).
+					Run(func(b []byte) {
+						copy(b, tc.quoteRecvResult)
+					}).Once()
 			}
 
-			result, err := s.client.GetRandomQuote(context.Background())
+			result, err := s.client.GetRandomQuote(context.Background(), s.connMock)
 			s.Equal(tc.expectedResult, result)
 			s.ErrorIs(err, tc.expectedErr)
 		})

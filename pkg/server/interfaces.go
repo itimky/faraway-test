@@ -8,8 +8,3 @@ type hashCash interface {
 	GenerateChallenge() (string, error)
 	ValidateSolution(challenge string, solution int) error
 }
-
-type socket interface {
-	Recv() ([]byte, error)
-	Send(data []byte) error
-}

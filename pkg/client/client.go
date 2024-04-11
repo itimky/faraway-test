@@ -1,52 +1,58 @@
 package client
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"strconv"
+	"net"
+	"strings"
 
 	"github.com/itimky/faraway-test/pkg/pow"
 )
 
 type Client struct {
-	socket   socket
 	hashCash hashCash
 }
 
 func NewClient(
-	socket socket,
 	hashCash hashCash,
 ) *Client {
 	return &Client{
-		socket:   socket,
 		hashCash: hashCash,
 	}
 }
 
 func (c *Client) GetRandomQuote(
 	_ context.Context,
+	conn net.Conn,
 ) (string, error) {
-	err := c.socket.Send([]byte(""))
+	reader := bufio.NewReader(conn)
+	writer := bufio.NewWriter(conn)
+
+	// Receive the PoW challenge from the server
+	challenge, err := reader.ReadString('\n')
 	if err != nil {
-		return "", fmt.Errorf("send: %w", err)
+		return "", fmt.Errorf("read string: %w", err)
 	}
 
-	challenge, err := c.socket.Recv()
+	challenge = strings.TrimSpace(challenge)
+
+	solution := c.hashCash.SolveChallenge(challenge, pow.DefaultDifficulty)
+
+	_, err = fmt.Fprintln(writer, solution)
+	if err != nil {
+		return "", fmt.Errorf("fprintln: %w", err)
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		return "", fmt.Errorf("flush: %w", err)
+	}
+
+	quote, err := reader.ReadString('\n')
 	if err != nil {
 		return "", fmt.Errorf("recv: %w", err)
 	}
 
-	solution := c.hashCash.SolveChallenge(string(challenge), pow.DefaultDifficulty)
-
-	err = c.socket.Send([]byte(strconv.Itoa(solution)))
-	if err != nil {
-		return "", fmt.Errorf("send: %w", err)
-	}
-
-	quote, err := c.socket.Recv()
-	if err != nil {
-		return "", fmt.Errorf("recv: %w", err)
-	}
-
-	return string(quote), nil
+	return strings.TrimSpace(quote), nil
 }
