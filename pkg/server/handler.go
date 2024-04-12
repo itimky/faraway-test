@@ -30,9 +30,9 @@ func (s *Handler) Handle(
 		return fmt.Errorf("get random quote: %w", err)
 	}
 
-	_, err = fmt.Fprintln(writer, quote)
+	_, err = fmt.Fprintf(writer, "%s\x03", quote)
 	if err != nil {
-		return fmt.Errorf("fprintln: %w", err)
+		return fmt.Errorf("fprintf: %w", err)
 	}
 
 	err = writer.Flush()

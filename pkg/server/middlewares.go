@@ -35,9 +35,9 @@ func (m *POWMiddleware) Handle(
 		return fmt.Errorf("generate challenge: %w", err)
 	}
 
-	_, err = fmt.Fprintln(writer, challenge)
+	_, err = fmt.Fprintf(writer, "%s\x03", challenge)
 	if err != nil {
-		return fmt.Errorf("fprintln: %w", err)
+		return fmt.Errorf("fprintf: %w", err)
 	}
 
 	err = writer.Flush()
@@ -45,12 +45,12 @@ func (m *POWMiddleware) Handle(
 		return fmt.Errorf("flush: %w", err)
 	}
 
-	solutionData, err := reader.ReadString('\n')
+	solutionData, err := reader.ReadString('\x03')
 	if err != nil {
 		return fmt.Errorf("read string: %w", err)
 	}
 
-	solutionData = strings.TrimSpace(solutionData)
+	solutionData = strings.TrimRight(solutionData, "\x03")
 
 	solution, err := strconv.Atoi(solutionData)
 	if err != nil {

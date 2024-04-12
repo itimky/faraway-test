@@ -30,18 +30,18 @@ func (c *Client) GetRandomQuote(
 	writer := bufio.NewWriter(conn)
 
 	// Receive the PoW challenge from the server
-	challenge, err := reader.ReadString('\n')
+	challenge, err := reader.ReadString('\x03')
 	if err != nil {
 		return "", fmt.Errorf("read string: %w", err)
 	}
 
-	challenge = strings.TrimSpace(challenge)
+	challenge = strings.TrimRight(challenge, "\x03")
 
 	solution := c.hashCash.SolveChallenge(challenge, pow.DefaultDifficulty)
 
-	_, err = fmt.Fprintln(writer, solution)
+	_, err = fmt.Fprintf(writer, "%d\x03", solution)
 	if err != nil {
-		return "", fmt.Errorf("fprintln: %w", err)
+		return "", fmt.Errorf("fprintf: %w", err)
 	}
 
 	err = writer.Flush()
@@ -49,10 +49,10 @@ func (c *Client) GetRandomQuote(
 		return "", fmt.Errorf("flush: %w", err)
 	}
 
-	quote, err := reader.ReadString('\n')
+	quote, err := reader.ReadString('\x03')
 	if err != nil {
 		return "", fmt.Errorf("recv: %w", err)
 	}
 
-	return strings.TrimSpace(quote), nil
+	return strings.TrimRight(quote, "\x03"), nil
 }

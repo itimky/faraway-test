@@ -44,13 +44,13 @@ func (s *HandlerSuite) Test_Handle() {
 			name:        "err: send error",
 			expectedErr: test.Err,
 			quoteResult: "quote",
-			sendParams:  []byte("quote\n"),
+			sendParams:  []byte("quote\x03"),
 			sendError:   test.Err,
 		},
 		{
 			name:        "ok",
 			quoteResult: "quote",
-			sendParams:  []byte("quote\n"),
+			sendParams:  []byte("quote\x03"),
 		},
 	}
 
