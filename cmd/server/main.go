@@ -22,6 +22,9 @@ func quotes() []string {
 		`“Guard well your thoughts when alone and your words when accompanied.” ― Roy T. Bennett`,                                                                                            //nolint:lll
 		`“Quit being so hard on yourself. We are what we are; we love what we love. We don't need to justify it to anyone... not even to ourselves.” ― Scott Lynch, The Republic of Thieves`, //nolint:lll
 		`“Voice is not just the sound that comes from your throat, but the feelings that come from your words.” ― Jennifer Donnelly, A Northern Light`,                                       //nolint:lll
+		`“Laughter is poison to fear.” ― George R.R. Martin, A Game of Thrones`,
+		`“I criticize by creation, not by finding fault.” ― Marcus Tullius Cicero`,
+		`“Above all, don't lie to yourself. The man who lies to himself and listens to his own lie comes to a point that he cannot distinguish the truth within him, or around him, and so loses all respect for himself and for others. And having no respect he ceases to love.” ― Fyodor Dostoevsky, The Brothers Karamazov`, //nolint:lll
 	}
 }
 
