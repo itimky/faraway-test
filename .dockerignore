@@ -1,5 +1,7 @@
 .git
 .github
+
+test
 tmp
 
 .dockerignore
