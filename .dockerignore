@@ -1,0 +1,14 @@
+.git
+.github
+tmp
+
+.dockerignore
+.gitignore
+.golangci.yaml
+.mockery.yaml
+
+docker-compose.yaml
+Dockerfile.server
+Dockerfile.client
+README.md
+Taskfile.yaml
